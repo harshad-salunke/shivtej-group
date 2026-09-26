@@ -1722,7 +1722,9 @@ export default function Dashboard({
                   e.preventDefault();
                   const f = new FormData(e.currentTarget);
                   const [jy, jm] = String(f.get("join")).split("-").map(Number);
-                  const leave = String(f.get("leave"));
+                  // "leave" field exists only when editing; for new members
+                  // f.get returns null and String(null) would become "null".
+                  const leave = String(f.get("leave") ?? "").trim();
                   const [ly, lm] = leave
                     ? leave.split("-").map(Number)
                     : [null, null];
