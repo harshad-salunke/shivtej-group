@@ -58,9 +58,12 @@ import IncomeBreakdown from "@/components/income-breakdown";
 import { incomeSchema, incomeKinds, type Income } from "@/lib/income";
 const statusNames: Record<string, string> = {
   paid: "भरले",
-  partial: "अंशतः भरले",
+  partial: "Partial",
   unpaid: "बाकी",
 };
+const statusOrder: Record<string, number> = { paid: 0, partial: 1, unpaid: 2 };
+const matches = (name: string, query: string) =>
+  name.toLowerCase().includes(query.trim().toLowerCase());
 function Modal({
   title,
   children,
@@ -183,7 +186,7 @@ async function compress(file: File) {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
     throw Error("JPG, PNG किंवा WebP चित्र निवडा.");
   if (file.size > 15 * 1024 * 1024)
-    throw Error("मूळ चित्र १५ MB पेक्षा लहान असावे.");
+    throw Error("मूळ चित्र 15 MB पेक्षा लहान असावे.");
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, 1800 / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
@@ -197,7 +200,7 @@ async function compress(file: File) {
     if (blob && blob.size < 800 * 1024) break;
   }
   if (!blob || blob.size > 2 * 1024 * 1024)
-    throw Error("चित्र २ MB पेक्षा लहान करता आले नाही. कृपया crop करा.");
+    throw Error("चित्र 2 MB पेक्षा लहान करता आले नाही. कृपया crop करा.");
   return new File([blob], "receipt.webp", { type: "image/webp" });
 }
 export default function Dashboard({
@@ -300,11 +303,6 @@ export default function Dashboard({
       return () => clearTimeout(t);
     }
   }, [toast]);
-  useEffect(() => {
-    document
-      .querySelector('[data-selected="true"]')
-      ?.scrollIntoView({ block: "nearest", inline: "center" });
-  }, [month, loading]);
   const d = data;
   const sum = d ? summary(d, year, month) : null;
   const dues = d ? previousDues(d, year, month) : [];
@@ -394,6 +392,15 @@ export default function Dashboard({
             if (idx >= 0) next.additional_income[idx] = entry;
             else next.additional_income.push(entry);
           }
+        } else if (entity === "payments" && payload.delete) {
+          next.payments = next.payments.filter(
+            (p) =>
+              !(
+                p.member_id === payload.member_id &&
+                p.year === payload.year &&
+                p.month === payload.month
+              ),
+          );
         } else if (entity === "payments") {
           const idx = next.payments.findIndex(
             (p) =>
@@ -528,12 +535,12 @@ export default function Dashboard({
               <strong>
                 शिवतेज ग्रुप <span>वाखारी</span>
               </strong>
-              <small>एकत्रित प्रयत्न. एकच ध्येय.</small>
+              <small>United Effort. One Goal.</small>
             </span>
           </a>
           <div className="header-right">
             <span className="project-pill">
-              <Volume2 size={15} /> साऊंड सिस्टीम • नियोजन २०२७
+              <Volume2 size={15} /> साऊंड सिस्टीम • नियोजन 2027
             </span>
             {admin ? (
               <a className="text-link" href={offline ? "?" : "/"}>
@@ -716,7 +723,7 @@ export default function Dashboard({
                 </div>
                 <div className="stat">
                   <div className="stat-label">
-                    <span>वर्षातील एकूण निधी</span>
+                    <span>Total Fund (वर्षातील एकूण)</span>
                     <span className="stat-icon green">
                       <Users size={20} />
                     </span>
@@ -727,13 +734,12 @@ export default function Dashboard({
                       setBreakdownPeriod({ year });
                       open("breakdown");
                     }}
-                    aria-label="वर्षातील एकूण निधीचा तपशील"
+                    aria-label="Total Fund details"
                   >
                     {money(yearly)} <ArrowUpRight size={17} />
                   </button>
                   <div className="stat-foot">
                     <span>{num(year)} • वर्गणी, इतर जमा व शिल्लक</span>
-                    <span className="green-text">एकत्र पुढे जाऊया</span>
                   </div>
                 </div>
               </div>
@@ -754,9 +760,9 @@ export default function Dashboard({
               </div>
               <nav className="main-tabs" aria-label="मुख्य विभाग">
                 {[
-                  ["payments", "मासिक वर्गणी"],
-                  ["members", "सदस्यनिहाय हिशोब"],
-                  ["year", "वार्षिक आढावा"],
+                  ["payments", "Monthly"],
+                  ["members", "Members"],
+                  ["year", "Yearly Report"],
                   ...(admin || activeNotices.length > 1
                     ? [["notices", "सूचना"]]
                     : []),
@@ -767,67 +773,43 @@ export default function Dashboard({
                     onClick={() => setTab(id)}
                   >
                     {label}
-                    {id === "payments" && <span>{num(sum.rows.length)}</span>}
+                    {id === "payments" && <span>{sum.rows.length}</span>}
                   </button>
                 ))}
               </nav>
               {tab === "payments" && (
                 <>
                   <section className="month-section">
-                    <div className="section-heading">
+                    <div className="month-nav">
+                      <button
+                        className="icon"
+                        onClick={() => moveMonth(-1)}
+                        aria-label="Previous month"
+                      >
+                        <ArrowLeft size={18} />
+                      </button>
                       <h2>
                         {months[month - 1]} <span>{num(year)}</span>
                       </h2>
-                      <div className="month-controls">
-                        <button
-                          className="icon"
-                          onClick={() => moveMonth(-1)}
-                          aria-label="मागील महिना"
-                        >
-                          <ArrowLeft size={17} />
-                        </button>
-                        <button
-                          className="today-btn"
-                          onClick={() => {
-                            setYear(now.year);
-                            setMonth(now.month);
-                          }}
-                        >
-                          चालू महिना
-                        </button>
-                        <button
-                          className="icon"
-                          onClick={() => moveMonth(1)}
-                          aria-label="पुढील महिना"
-                        >
-                          <ArrowRight size={17} />
-                        </button>
-                      </div>
+                      <button
+                        className="icon"
+                        onClick={() => moveMonth(1)}
+                        aria-label="Next month"
+                      >
+                        <ArrowRight size={18} />
+                      </button>
                     </div>
-                    <div className="month-slider">
-                      {shortMonths.map((m, i) => (
-                        <button
-                          key={m}
-                          data-selected={month === i + 1}
-                          className={month === i + 1 ? "selected" : ""}
-                          onClick={() => setMonth(i + 1)}
-                        >
-                          {m}
-                          <span
-                            className={
-                              d.payments.some(
-                                (p) =>
-                                  p.year === year &&
-                                  p.month === i + 1 &&
-                                  p.amount_paid > 0,
-                              )
-                                ? "has-payments"
-                                : ""
-                            }
-                          />
-                        </button>
-                      ))}
-                    </div>
+                    {(year !== now.year || month !== now.month) && (
+                      <button
+                        className="today-btn"
+                        onClick={() => {
+                          setYear(now.year);
+                          setMonth(now.month);
+                        }}
+                      >
+                        Current month
+                      </button>
+                    )}
                   </section>
                   {dues.length > 0 && (
                     <section className="dues-alert">
@@ -916,7 +898,7 @@ export default function Dashboard({
                           {[
                             ["all", "सर्व"],
                             ["paid", "भरले"],
-                            ["partial", "अंशतः"],
+                            ["partial", "Partial"],
                             ["unpaid", "बाकी"],
                           ].map(([id, label]) => (
                             <button
@@ -939,11 +921,32 @@ export default function Dashboard({
                         {sum.rows
                           .filter(
                             (r) =>
-                              r.member.name.includes(query) &&
+                              matches(r.member.name, query) &&
                               (filter === "all" || r.status === filter),
                           )
+                          .sort((a, b) =>
+                            admin
+                              ? 0
+                              : statusOrder[a.status] - statusOrder[b.status],
+                          )
                           .map((r, i) => (
-                            <div className="member-row" key={r.member.id}>
+                            <div
+                              className={
+                                "member-row" +
+                                (!admin && r.p?.screenshot_path
+                                  ? " has-receipt"
+                                  : "")
+                              }
+                              key={r.member.id}
+                              onClick={
+                                !admin && r.p?.screenshot_path
+                                  ? () => {
+                                      setReceipt(r.p!);
+                                      open("receipt", r.member);
+                                    }
+                                  : undefined
+                              }
+                            >
                               <div className="member-name">
                                 <span className={"avatar avatar-" + (i % 4)}>
                                   {r.member.name
@@ -958,7 +961,7 @@ export default function Dashboard({
                                     {r.p?.payment_date
                                       ? new Date(
                                           r.p.payment_date + "T12:00:00",
-                                        ).toLocaleDateString("mr-IN", {
+                                        ).toLocaleDateString("mr-IN-u-nu-latn", {
                                           day: "2-digit",
                                           month: "short",
                                           year: "numeric",
@@ -1004,13 +1007,7 @@ export default function Dashboard({
                                   <span>{r.paid ? "बदला" : "भरले"}</span>
                                 </button>
                               ) : r.p?.screenshot_path ? (
-                                <button
-                                  className="row-action"
-                                  onClick={() => {
-                                    setReceipt(r.p!);
-                                    open("receipt", r.member);
-                                  }}
-                                >
+                                <button className="row-action">
                                   <Receipt size={16} />
                                   <span>पहा</span>
                                 </button>
@@ -1022,7 +1019,7 @@ export default function Dashboard({
                       </div>
                       {sum.rows.filter(
                         (r) =>
-                          r.member.name.includes(query) &&
+                          matches(r.member.name, query) &&
                           (filter === "all" || r.status === filter),
                       ).length === 0 && (
                         <div className="empty">
@@ -1121,7 +1118,7 @@ export default function Dashboard({
                           <div>
                             <i className="amber-dot" />
                             <strong>{num(sum.partial)}</strong>
-                            <span>अंशतः</span>
+                            <span>Partial</span>
                           </div>
                           <div>
                             <i className="red-dot" />
@@ -1142,7 +1139,7 @@ export default function Dashboard({
                         </h3>
                         <p>दरमहा {money(rate(d, year))} वर्गणी</p>
                         <span className="small-muted">
-                          शिवतेज ग्रुप वाखारी • नियोजन २०२७
+                          शिवतेज ग्रुप वाखारी • नियोजन 2027
                         </span>
                       </section>
                     </aside>
@@ -1153,7 +1150,7 @@ export default function Dashboard({
                 <section className="panel">
                   <div className="section-heading">
                     <h2>
-                      सदस्यनिहाय जमा <span>{num(year)}</span>
+                      Members <span>{num(year)}</span>
                     </h2>
                     {admin && (
                       <button
@@ -1175,7 +1172,7 @@ export default function Dashboard({
                   </div>
                   <div className="member-cards">
                     {d.members
-                      .filter((m) => m.name.includes(query))
+                      .filter((m) => matches(m.name, query))
                       .sort((a, b) => a.display_order - b.display_order)
                       .map((m) => {
                         const s = memberYear(d, m, year);
@@ -1242,7 +1239,7 @@ export default function Dashboard({
               {tab === "year" && (
                 <section className="panel">
                   <div className="section-heading">
-                    <h2>{num(year)} वार्षिक आढावा</h2>
+                    <h2>Yearly Report {num(year)}</h2>
                     <button
                       className="year-total"
                       onClick={() => {
@@ -1349,7 +1346,7 @@ export default function Dashboard({
                   ग्रुप वाखारी
                 </div>
                 <span>एकीची ताकद, प्रगतीची वाट.</span>
-                <small>नियोजन २०२७</small>
+                <small>नियोजन 2027</small>
               </footer>
               {tab === "payments" && (
                 <button
@@ -1665,13 +1662,32 @@ export default function Dashboard({
                       defaultValue={currentPayment?.note}
                     />
                   </Field>
-                  <p className="muted">
-                    वर्गणी बाकी म्हणून नोंदवण्यासाठी रक्कम ० करा.
-                  </p>
                   {formError && (
                     <p className="form-error" role="alert">
                       {formError}
                     </p>
+                  )}
+                  {currentPayment && (
+                    <button
+                      type="button"
+                      className="danger"
+                      disabled={busy}
+                      onClick={() => {
+                        if (
+                          confirm(
+                            `${selected.name} यांची ${months[month - 1]} ${num(year)} ची payment नोंद delete करायची का? पावती image सुद्धा delete होईल आणि सदस्य "बाकी" दिसेल.`,
+                          )
+                        )
+                          mutate("payments", {
+                            member_id: selected.id,
+                            year,
+                            month,
+                            delete: true,
+                          });
+                      }}
+                    >
+                      <Trash2 size={16} /> Delete payment
+                    </button>
                   )}
                 </div>
                 <div className="form-actions">

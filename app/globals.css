@@ -367,10 +367,40 @@ button svg {
   color: #8b8e86;
   font-weight: 400;
 }
-.month-controls {
+.month-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.month-nav {
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 380px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+}
+.month-nav h2 {
+  flex: 1;
+  text-align: center;
+  font-size: 20px;
+}
+.month-nav h2 span {
+  color: #8b8e86;
+  font-weight: 400;
+}
+.month-nav .icon {
+  height: 40px;
+  min-width: 40px;
+  border-color: #f5cdb0;
+  background: #fff1e7;
+  color: #c9571d;
 }
 .icon {
   height: 35px;
@@ -387,44 +417,6 @@ button svg {
   font-size: 12px;
   color: #7a7f77;
   padding: 3px 9px;
-}
-.month-slider {
-  display: flex;
-  gap: 7px;
-  overflow: auto;
-  padding-bottom: 7px;
-  margin-bottom: 15px;
-  scrollbar-width: thin;
-}
-.month-slider button {
-  flex: 1;
-  min-width: 69px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  padding: 8px 8px 4px;
-  font-size: 14px;
-  white-space: nowrap;
-  color: #767c73;
-}
-.month-slider button.selected {
-  background: #fff1e7;
-  border-color: #f5cdb0;
-  color: #c9571d;
-  font-weight: 650;
-}
-.month-slider button > span {
-  display: block;
-  border-radius: 50%;
-  width: 3px;
-  height: 3px;
-  margin: 3px auto;
-  background: transparent;
-}
-.month-slider button .has-payments {
-  background: #99ad92;
-}
-.month-slider button.selected .has-payments {
-  background: var(--orange);
 }
 .dues-alert {
   background: #fff9ef;
@@ -563,6 +555,14 @@ button svg {
 }
 .member-row:last-child {
   border-bottom: 0;
+}
+.member-row.has-receipt {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.member-row.has-receipt:hover,
+.member-row.has-receipt:active {
+  background: #fff8f2;
 }
 .member-name {
   display: flex;
@@ -1357,23 +1357,8 @@ dialog::backdrop {
   .month-section {
     padding-top: 20px;
   }
-  .month-slider {
-    gap: 4px;
-  }
-  .month-slider button {
-    min-width: 61px;
-    font-size: 13px;
-  }
-  .month-controls {
-    gap: 3px;
-  }
-  .today-btn {
-    font-size: 11px;
-    padding: 3px 5px;
-  }
-  .month-controls .icon {
-    min-width: 30px;
-    height: 30px;
+  .month-nav h2 {
+    font-size: 18px;
   }
   .dues-trigger {
     padding: 13px 12px;
@@ -1601,7 +1586,6 @@ dialog::backdrop {
 .stat-label,
 .main-tabs button,
 .filters button,
-.month-slider button,
 .badge,
 .row-action,
 .summary-lines p,
@@ -1646,8 +1630,7 @@ dialog::backdrop {
     font-size: 14px;
   }
   .main-tabs button,
-  .filters button,
-  .month-slider button {
+  .filters button {
     font-size: 14px;
   }
   .dues-trigger strong {

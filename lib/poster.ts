@@ -62,9 +62,9 @@ export function reportData(data: Data, year: number, month?: number) {
     funds: fundSummary(data, year, month),
     title: month
       ? `${months[month - 1]} ${num(year)}`
-      : `वार्षिक आढावा ${num(year)}`,
+      : `Yearly Report ${num(year)}`,
     period: month
-      ? "मासिक वर्गणीचा तपशील"
+      ? "Monthly वर्गणी तपशील"
       : end
         ? `बाकीचा हिशोब: ${months[end - 1]} ${num(year)} पर्यंत`
         : "आगाऊ नोंदी • या वर्षाची वर्गणी अद्याप देय नाही",
@@ -73,7 +73,7 @@ export function reportData(data: Data, year: number, month?: number) {
 }
 const labels = {
   paid: "भरले",
-  partial: "अंशतः भरले",
+  partial: "Partial",
   unpaid: "बाकी",
   future: "अद्याप देय नाही",
 };
@@ -105,11 +105,11 @@ export async function generatePosters(
 ) {
   await document.fonts.load(
     '400 28px "Noto Sans Devanagari"',
-    "मराठी वर्गणी ₹१२३",
+    "मराठी वर्गणी ₹123",
   );
   await document.fonts.load(
     '700 42px "Noto Sans Devanagari"',
-    "मराठी वर्गणी ₹१२३",
+    "मराठी वर्गणी ₹123",
   );
   await document.fonts.ready;
   const logo = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -180,7 +180,7 @@ export async function generatePosters(
     ctx.drawImage(logo, 430, 40, 220, (220 * logo.height) / logo.width);
     text("शिवतेज ग्रुप वाखारी", 540, 235, 44, "#c94b12", true, "center");
     text(
-      "साऊंड सिस्टीम • नियोजन २०२७",
+      "साऊंड सिस्टीम • नियोजन 2027",
       540,
       280,
       26,

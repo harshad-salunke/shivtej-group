@@ -67,9 +67,9 @@ export const shortMonths = [
   "डिसें",
 ];
 export const num = (n: number) =>
-  new Intl.NumberFormat("mr-IN", { useGrouping: false }).format(n);
+  new Intl.NumberFormat("en-IN", { useGrouping: false }).format(n);
 export const money = (n: number) =>
-  "₹" + new Intl.NumberFormat("mr-IN", { maximumFractionDigits: 2 }).format(n);
+  "₹" + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(n);
 export function today() {
   return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 }
@@ -268,7 +268,7 @@ export function sampleData(): Data {
       {
         id: "demo-notice",
         message:
-          "साऊंड सिस्टीमसाठी एकत्र येऊया! या महिन्याची वर्गणी १० तारखेपर्यंत जमा करावी.",
+          "साऊंड सिस्टीमसाठी एकत्र येऊया! या महिन्याची वर्गणी 10 तारखेपर्यंत जमा करावी.",
         start_date: null,
         end_date: null,
         is_active: true,

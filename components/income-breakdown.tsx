@@ -108,7 +108,7 @@ export default function IncomeBreakdown({
                   <h3>{e.source}</h3>
                   <p className="income-meta">
                     {new Date(e.entry_date + "T12:00:00").toLocaleDateString(
-                      "mr-IN",
+                      "mr-IN-u-nu-latn",
                       { day: "numeric", month: "short", year: "numeric" },
                     )}
                     {!month ? " • " + months[e.month - 1] : ""}

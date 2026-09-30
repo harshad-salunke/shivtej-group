@@ -78,7 +78,7 @@ export async function POST(
       2 * 1024 * 1024 + 20000
     )
       return NextResponse.json(
-        { error: "फाइल २ MB पेक्षा लहान असावी." },
+        { error: "फाइल 2 MB पेक्षा लहान असावी." },
         { status: 413 },
       );
     const { entity } = await params;
@@ -179,6 +179,21 @@ export async function POST(
       result = await client
         .from("yearly_settings")
         .upsert(p, { onConflict: "year" });
+    } else if (entity === "payments" && raw.delete) {
+      const p = z
+        .object({ member_id: z.string().uuid(), year, month })
+        .parse(raw);
+      result = await client
+        .from("payments")
+        .delete()
+        .eq("member_id", p.member_id)
+        .eq("year", p.year)
+        .eq("month", p.month)
+        .select("screenshot_path")
+        .single();
+      // Advance payments share one proof across months, so only delete unreferenced files.
+      if (!result.error && result.data?.screenshot_path)
+        await removeUnusedProof(result.data.screenshot_path);
     } else if (entity === "payments") {
       const p = payment.parse(raw);
       const existing = await client
@@ -248,7 +263,7 @@ export async function POST(
         : message?.includes("INELIGIBLE")
           ? "या महिन्यात सदस्याची वर्गणी लागू होत नाही."
           : message?.includes("UPLOAD")
-            ? "JPG, PNG किंवा WebP चित्र वापरा; कमाल २ MB."
+            ? "JPG, PNG किंवा WebP चित्र वापरा; कमाल 2 MB."
             : validation
               ? message
               : "माहिती जतन करता आली नाही. कृपया पुन्हा प्रयत्न करा.";

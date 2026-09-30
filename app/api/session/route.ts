@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     if (limit.error) throw limit.error;
     if (!limit.data)
       return NextResponse.json(
-        { error: "खूप प्रयत्न झाले. १५ मिनिटांनी पुन्हा प्रयत्न करा." },
+        { error: "खूप प्रयत्न झाले. 15 मिनिटांनी पुन्हा प्रयत्न करा." },
         { status: 429 },
       );
     if (!(await compare(password, process.env.ADMIN_PASSWORD_HASH)))

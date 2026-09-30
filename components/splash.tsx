@@ -17,7 +17,7 @@ export default function Splash() {
     <div className="splash" aria-hidden="true">
       <img src={LOGO_SRC} alt="" />
       <strong>शिवतेज ग्रुप वाखारी</strong>
-      <span>नियोजन २०२७</span>
+      <span>नियोजन 2027</span>
     </div>
   ) : null;
 }
