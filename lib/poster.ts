@@ -57,6 +57,9 @@ export function reportData(data: Data, year: number, month?: number) {
                   : "unpaid",
           };
         });
+  // Paid members first, then partial, then unpaid; stable sort keeps list order within each group.
+  const rank = { paid: 0, partial: 1, unpaid: 2, future: 3 };
+  rows.sort((a, b) => rank[a.status] - rank[b.status]);
   return {
     rows,
     funds: fundSummary(data, year, month),

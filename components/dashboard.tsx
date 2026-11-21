@@ -427,6 +427,11 @@ export default function Dashboard({
           };
           if (idx >= 0) next.payments[idx] = p;
           else next.payments.push(p);
+        } else if (entity === "members" && payload.delete) {
+          next.members = next.members.filter((m) => m.id !== payload.id);
+          next.payments = next.payments.filter(
+            (p) => p.member_id !== payload.id,
+          );
         } else if (entity === "members") {
           const idx = next.members.findIndex((m) => m.id === payload.id);
           if (idx >= 0)
@@ -1820,6 +1825,23 @@ export default function Dashboard({
                     <p role="alert" className="form-error">
                       {formError}
                     </p>
+                  )}
+                  {selected && (
+                    <button
+                      type="button"
+                      className="danger"
+                      disabled={busy}
+                      onClick={() => {
+                        if (
+                          confirm(
+                            `${selected.name} यांची संपूर्ण प्रोफाइल कायमची delete करायची का? त्यांच्या सर्व वर्गणी नोंदी आणि पावत्या सुद्धा delete होतील. हे परत आणता येणार नाही.`,
+                          )
+                        )
+                          mutate("members", { id: selected.id, delete: true });
+                      }}
+                    >
+                      <Trash2 size={16} /> सदस्य delete करा
+                    </button>
                   )}
                 </div>
                 <div className="form-actions">

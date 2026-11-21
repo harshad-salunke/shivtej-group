@@ -139,6 +139,31 @@ export async function POST(
               .select("id")
               .single();
       }
+    } else if (entity === "members" && raw.delete) {
+      const id = z.string().uuid().parse(raw.id);
+      // payments and advance batches reference members with "restrict", so remove them first.
+      const removed = await client
+        .from("payments")
+        .delete()
+        .eq("member_id", id)
+        .select("screenshot_path");
+      if (removed.error) throw removed.error;
+      const batches = await client
+        .from("admin_payment_batches")
+        .delete()
+        .eq("member_id", id);
+      if (batches.error) throw batches.error;
+      result = await client
+        .from("members")
+        .delete()
+        .eq("id", id)
+        .select("id")
+        .single();
+      if (!result.error)
+        for (const path of new Set(
+          (removed.data ?? []).map((r) => r.screenshot_path).filter(Boolean),
+        ))
+          await removeUnusedProof(path);
     } else if (entity === "members") {
       const p = member.parse(raw);
       result = p.id
