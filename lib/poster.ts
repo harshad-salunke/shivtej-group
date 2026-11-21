@@ -63,6 +63,10 @@ export function reportData(data: Data, year: number, month?: number) {
   return {
     rows,
     funds: fundSummary(data, year, month),
+    paidToDate:
+      data.payments
+        .filter((p) => p.year === year && p.month <= (month ?? 12))
+        .reduce((a, p) => a + Math.round(p.amount_paid * 100), 0) / 100,
     title: month
       ? `${months[month - 1]} ${num(year)}`
       : `Yearly Report ${num(year)}`,
@@ -205,17 +209,49 @@ export async function generatePosters(
       );
     ctx.fillStyle = "#f9e8d5";
     ctx.fillRect(55, 443, 970, 101);
-    text("सदस्य वर्गणी", 88, 478, 23);
+    // Monthly posters: this month's collection, this month's balance due, year-to-date collection.
+    text(month ? "या महिन्याची वर्गणी" : "सदस्य वर्गणी", 88, 478, 23);
     text(money(report.funds.memberPaid), 88, 523, 32, "#c94b12", true);
-    text("इतर जमा / शिल्लक", 430, 478, 23);
-    text(money(report.funds.extra), 430, 523, 32, "#c94b12", true);
-    text("एकूण निधी", 970, 478, 23, "#302b23", false, "right");
-    text(money(report.funds.total), 970, 523, 32, "#c94b12", true, "right");
+    text(month ? "या महिन्याची बाकी" : "इतर जमा / शिल्लक", 430, 478, 23);
     text(
-      `सदस्य: ${num(report.rows.length)}  •  पूर्ण भरले: ${num(report.rows.filter((r) => r.status === "paid").length)}  •  वर्गणी बाकी: ${money(report.due)}`,
+      money(month ? report.due : report.funds.extra),
+      430,
+      523,
+      32,
+      month ? "#b44738" : "#c94b12",
+      true,
+    );
+    text(
+      month ? "आतापर्यंत एकूण वर्गणी" : "एकूण निधी",
+      970,
+      478,
+      23,
+      "#302b23",
+      false,
+      "right",
+    );
+    text(
+      money(month ? report.paidToDate : report.funds.total),
+      970,
+      523,
+      32,
+      "#c94b12",
+      true,
+      "right",
+    );
+    const count = (s: ReportRow["status"]) =>
+      report.rows.filter((r) => r.status === s).length;
+    text(
+      [
+        `सदस्य: ${num(report.rows.length)}`,
+        `पूर्ण भरले: ${num(count("paid"))}`,
+        ...(count("partial") ? [`Partial: ${num(count("partial"))}`] : []),
+        `न भरलेले: ${num(count("unpaid"))}`,
+        `वर्गणी बाकी: ${money(report.due)}`,
+      ].join("  •  "),
       60,
       585,
-      24,
+      22,
     );
     ctx.fillStyle = "#ebd8bd";
     ctx.fillRect(55, 606, 970, 45);
